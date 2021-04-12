@@ -1,10 +1,9 @@
 import { MikroORM } from "@mikro-orm/core";
-import { __prod__ } from "./constants";
+import { COOKIE_NAME, __prod__ } from "./constants";
 import mikroConfig from "./mikro-orm.config";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
-import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 import redis from "redis";
@@ -29,7 +28,7 @@ const main = async () => {
     );
     app.use(
         session({
-            name: "qid",
+            name: COOKIE_NAME,
             store: new RedisStore({
                 client: redisClient,
                 disableTTL: true,
@@ -49,7 +48,7 @@ const main = async () => {
 
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [HelloResolver, PostResolver, UserResolver],
+            resolvers: [PostResolver, UserResolver],
             validate: false,
         }),
         context: ({ req, res }) => ({ em: orm.em, req, res }),
@@ -64,8 +63,6 @@ const main = async () => {
         console.log("server started on localhost:4000");
     });
 };
-
-console.log("hello there!");
 
 main().catch((err) => {
     console.log(err);
