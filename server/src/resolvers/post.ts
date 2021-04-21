@@ -4,6 +4,7 @@ import {
     Ctx,
     Field,
     FieldResolver,
+    Info,
     InputType,
     Int,
     Mutation,
@@ -46,22 +47,48 @@ export class PostResolver {
     async posts(
         @Arg("limit", () => Int) limit: number,
         @Arg("cursor", () => String, { nullable: true }) cursor: string | null
+        // @Info() info: any
     ): Promise<PaginatedPosts> {
         // 20 -> 21
         const realLimit = Math.min(50, limit);
         const realLimitPlusOne = realLimit + 1;
-        const qb = getConnection()
-            .getRepository(Post)
-            .createQueryBuilder("p")
-            .orderBy('"createdAt"', "DESC")
-            .take(realLimitPlusOne);
 
-        if (cursor)
-            qb.where('"createdAt" < :cursor', {
-                cursor: new Date(parseInt(cursor)),
-            });
+        const replacements: any[] = [realLimitPlusOne];
 
-        const posts = await qb.getMany();
+        if (cursor) replacements.push(new Date(parseInt(cursor)));
+
+        const posts = await getConnection().query(
+            `
+            SELECT p.*,
+            json_build_object(
+                'id', u.id,
+                'username', u.username,
+                'email', u.email,
+                'createdAt', u.createdAt,
+                'updatedAt', u.updatedAt,
+            ) creator
+            FROM post p
+            ${cursor ? `WHERE p."createdAt" < $2` : ""}
+            INNER JOIN public.user u WHERE p."creatorId" = u.id
+            ORDER BY p."createdAt" DESC
+            limit $1
+            `,
+            [replacements]
+        );
+
+        // const qb = getConnection()
+        //     .getRepository(Post)
+        //     .createQueryBuilder("p")
+        //     .innerJoinAndSelect("p.creator", "c", 'c.id = p."creatorId"')
+        //     .orderBy('p."createdAt"', "DESC")
+        //     .take(realLimitPlusOne);
+
+        // if (cursor)
+        //     qb.where('p."createdAt" < :cursor', {
+        //         cursor: new Date(parseInt(cursor)),
+        //     });
+
+        // const posts = await qb.getMany();
 
         return {
             posts: posts.slice(0, realLimit),
