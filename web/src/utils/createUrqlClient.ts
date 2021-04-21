@@ -1,5 +1,5 @@
-import { dedupExchange, fetchExchange } from "@urql/core";
-import { cacheExchange } from "@urql/exchange-graphcache";
+import { dedupExchange, fetchExchange, stringifyVariables } from "@urql/core";
+import { cacheExchange, Resolver } from "@urql/exchange-graphcache";
 import {
   LoginMutation,
   MeQuery,
@@ -11,6 +11,33 @@ import { betterUpdateQuery } from "./betterUpdateQuery";
 import { pipe, tap } from "wonka";
 import { Exchange } from "urql";
 import Router from "next/router";
+
+export const cursorPagination = (): Resolver => {
+  return (_parent, fieldArgs, cache, info) => {
+    const { parentKey: entityKey, fieldName } = info;
+    console.log(entityKey, fieldName);
+
+    const allFields = cache.inspectFields(entityKey);
+    console.log("allFields: ", allFields);
+    const fieldInfos = allFields.filter((info) => info.fieldName === fieldName);
+    const size = fieldInfos.length;
+    if (size === 0) {
+      return undefined;
+    }
+    const isItInTheCache = cache.resolve(
+      entityKey,
+      `${fieldName}(${stringifyVariables(fieldArgs)})`
+    ) as string[];
+    info.partial = !isItInTheCache;
+    const results: string[] = [];
+    fieldInfos.forEach((fi) => {
+      const data = cache.resolve(entityKey, fi.fieldKey) as string[];
+      results.push(...data);
+    });
+
+    return results;
+  };
+};
 
 const errorExchange: Exchange = ({ forward }) => (ops$) => {
   return pipe(
@@ -31,6 +58,11 @@ export const createUrqlClient = (ssrExchange: any) => ({
   exchanges: [
     dedupExchange,
     cacheExchange({
+      resolvers: {
+        Query: {
+          posts: cursorPagination(),
+        },
+      },
       updates: {
         Mutation: {
           login: (_result, args, cache, info) => {
