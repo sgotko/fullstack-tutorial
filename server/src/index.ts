@@ -24,6 +24,7 @@ const main = async () => {
         migrations: [path.join(__dirname, "./migrations/*")],
         entities: [Post, User],
     });
+    // await connection.undoLastMigration();
     // await connection.runMigrations();
 
     const app = express();
