@@ -11,17 +11,20 @@ import cors from "cors";
 import { createConnection } from "typeorm";
 import { User } from "./entities/User";
 import { Post } from "./entities/Post";
+import path from "path";
 
 const main = async () => {
-    await createConnection({
+    const connection = await createConnection({
         type: "postgres",
         database: "fullstack-tutorial",
         username: "fullstack-tutorial",
         password: "fullstack-tutorial",
         logging: true,
         synchronize: !__prod__,
+        migrations: [path.join(__dirname, "./migrations/*")],
         entities: [Post, User],
     });
+    // await connection.runMigrations();
 
     const app = express();
 
