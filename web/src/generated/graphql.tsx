@@ -83,6 +83,7 @@ export type Post = {
   text: Scalars['String'];
   points: Scalars['Float'];
   creatorId: Scalars['Float'];
+  creator: User;
   createdAt: Scalars['String'];
   updatedAt: Scalars['String'];
   textSnippet: Scalars['String'];
@@ -249,7 +250,11 @@ export type PostsQuery = (
     & Pick<PaginatedPosts, 'hasMore'>
     & { posts: Array<(
       { __typename?: 'Post' }
-      & Pick<Post, 'id' | 'title' | 'textSnippet' | 'points' | 'creatorId' | 'createdAt' | 'updatedAt'>
+      & Pick<Post, 'id' | 'title' | 'textSnippet' | 'points' | 'createdAt' | 'updatedAt'>
+      & { creator: (
+        { __typename?: 'User' }
+        & Pick<User, 'id' | 'username' | 'email' | 'createdAt'>
+      ) }
     )> }
   ) }
 );
@@ -367,7 +372,12 @@ export const PostsDocument = gql`
       title
       textSnippet
       points
-      creatorId
+      creator {
+        id
+        username
+        email
+        createdAt
+      }
       createdAt
       updatedAt
     }
