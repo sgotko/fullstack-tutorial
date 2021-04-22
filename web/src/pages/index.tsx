@@ -11,6 +11,7 @@ import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
 import React, { useState } from "react";
 import { Layout } from "../components/Layout";
+import { UpdootSection } from "../components/UpdootSection";
 import { usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 
@@ -35,20 +36,22 @@ const Index = () => {
           <Link ml="auto">create post</Link>
         </NextLink>
       </Flex>
-
       <br />
       {!data && fetching ? (
         <div>loading...</div>
       ) : (
         <Stack spacing={8}>
           {data!.posts.posts.map((post) => (
-            <Box p={5} shadow="md" borderWidth="1px" key={post.id}>
-              <Heading fontSize="xl">{post.title}</Heading>{" "}
-              <Text mt={2} fontSize={12}>
-                posted by {post.creator.username}
-              </Text>
-              <Text mt={4}>{post.textSnippet}</Text>
-            </Box>
+            <Flex p={5} shadow="md" borderWidth="1px" key={post.id}>
+              <UpdootSection post={post} />
+              <Box>
+                <Heading fontSize="xl">{post.title}</Heading>
+                <Text mt={2} fontSize={12}>
+                  posted by {post.creator.username}
+                </Text>
+                <Text mt={4}>{post.textSnippet}</Text>
+              </Box>
+            </Flex>
           ))}
         </Stack>
       )}
