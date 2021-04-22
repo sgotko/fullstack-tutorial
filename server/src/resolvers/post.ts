@@ -96,10 +96,6 @@ export class PostResolver {
         const realLimitPlusOne = realLimit + 1;
         const { userId } = req.session;
 
-        const replacements: any[] = [realLimitPlusOne, userId];
-
-        if (cursor) replacements.push(new Date(parseInt(cursor)));
-
         const posts = await getConnection().query(
             `
             SELECT p.*,
@@ -112,31 +108,16 @@ export class PostResolver {
             ) creator,
             ${
                 userId
-                    ? `(SELECT VALUE FROM updoot WHERE "userId" = $2 AND "postId" = p.id) "voteStatus"`
+                    ? `(SELECT VALUE FROM updoot WHERE "userId" = ${userId} AND "postId" = p.id) "voteStatus"`
                     : `null as "voteStatus"`
             }
             FROM post p           
             INNER JOIN public.user u ON p."creatorId" = u.id
-            ${cursor ? `WHERE p."createdAt" < $3` : ""}
+            ${cursor ? `WHERE p."createdAt" < TO_TIMESTAMP(${cursor})` : ""}
             ORDER BY p."createdAt" DESC
-            limit $1
-            `,
-            [...replacements]
+            limit ${realLimitPlusOne}
+            `
         );
-
-        // const qb = getConnection()
-        //     .getRepository(Post)
-        //     .createQueryBuilder("p")
-        //     .innerJoinAndSelect("p.creator", "c", 'c.id = p."creatorId"')
-        //     .orderBy('p."createdAt"', "DESC")
-        //     .take(realLimitPlusOne);
-
-        // if (cursor)
-        //     qb.where('p."createdAt" < :cursor', {
-        //         cursor: new Date(parseInt(cursor)),
-        //     });
-
-        // const posts = await qb.getMany();
 
         return {
             posts: posts.slice(0, realLimit),
