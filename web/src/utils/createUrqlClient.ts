@@ -87,6 +87,15 @@ export const createUrqlClient = (ssrExchange: any) => ({
               cache.invalidate("Query", "posts", fi.arguments || {});
             });
           },
+          vote: (_result, args, cache, info) => {
+            const allFields = cache.inspectFields("Query");
+            const fieldInfos = allFields.filter(
+              (info) => info.fieldName === "posts"
+            );
+            fieldInfos.forEach((fi) => {
+              cache.invalidate("Query", "posts", fi.arguments || {});
+            });
+          },
           login: (_result, args, cache, info) => {
             betterUpdateQuery<LoginMutation, MeQuery>(
               cache,
