@@ -18,16 +18,18 @@ export const UpdootSection: React.FC<UpdootSectionProps> = ({ post }) => {
       <IconButton
         aria-label="vote-up"
         icon={<ChevronUpIcon size="24px" />}
+        colorScheme={post.voteStatus === 1 ? "lightgreen" : undefined}
         onClick={() => {
-          vote({ postId: post.id, value: 1 });
+          post.voteStatus === -1 && vote({ postId: post.id, value: 1 });
         }}
       />
       {post.points}
       <IconButton
         aria-label="vote-down"
         icon={<ChevronDownIcon size="24px" />}
+        colorScheme={post.voteStatus === -1 ? "red" : undefined}
         onClick={() => {
-          vote({ postId: post.id, value: -1 });
+          post.voteStatus === 1 && vote({ postId: post.id, value: -1 });
         }}
       />
     </Flex>
