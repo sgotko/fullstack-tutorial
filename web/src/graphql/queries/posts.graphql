@@ -9,8 +9,6 @@ query Posts($limit: Int!, $cursor: String) {
       creator {
         id
         username
-        email
-        createdAt
       }
       createdAt
       updatedAt

@@ -22,6 +22,7 @@ export type FieldError = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  vote: Scalars['Boolean'];
   createPost: Post;
   updatePost?: Maybe<Post>;
   deletePost: Scalars['Boolean'];
@@ -30,6 +31,12 @@ export type Mutation = {
   register: UserResponse;
   login: UserResponse;
   logout: Scalars['Boolean'];
+};
+
+
+export type MutationVoteArgs = {
+  value: Scalars['Int'];
+  postId: Scalars['Int'];
 };
 
 
@@ -253,7 +260,7 @@ export type PostsQuery = (
       & Pick<Post, 'id' | 'title' | 'textSnippet' | 'points' | 'createdAt' | 'updatedAt'>
       & { creator: (
         { __typename?: 'User' }
-        & Pick<User, 'id' | 'username' | 'email' | 'createdAt'>
+        & Pick<User, 'id' | 'username'>
       ) }
     )> }
   ) }
@@ -375,8 +382,6 @@ export const PostsDocument = gql`
       creator {
         id
         username
-        email
-        createdAt
       }
       createdAt
       updatedAt

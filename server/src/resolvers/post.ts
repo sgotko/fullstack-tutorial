@@ -4,7 +4,6 @@ import {
     Ctx,
     Field,
     FieldResolver,
-    Info,
     InputType,
     Int,
     Mutation,
@@ -17,6 +16,7 @@ import {
 import { MyContext } from "src/types";
 import { isAuth } from "../middleware/isAuth";
 import { getConnection } from "typeorm";
+import { Updoot } from "../entities/Updoot";
 
 @InputType()
 class PostInput {
@@ -43,6 +43,34 @@ export class PostResolver {
         return root.text.slice(0, 50);
     }
 
+    @Mutation(() => Boolean)
+    @UseMiddleware(isAuth)
+    async vote(
+        @Arg("postId", () => Int) postId: number,
+        @Arg("value", () => Int) value: number,
+        @Ctx() { req }: MyContext
+    ) {
+        const { userId } = req.session;
+        const isUpdoot = value !== -1;
+        const realValue = isUpdoot ? 1 : -1;
+        // await Updoot.insert({ postId, userId, value: realValue });
+        await getConnection().query(
+            `
+            START TRANSACTION;
+
+            INSERT INTO updoot ("userId", "postId", value)
+            VALUES (${userId}, ${postId}, ${realValue});
+
+            UPDATE post
+            SET points = points + ${realValue}
+            where id = ${postId};
+
+            COMMIT;
+        `
+        );
+        return true;
+    }
+
     @Query(() => PaginatedPosts)
     async posts(
         @Arg("limit", () => Int) limit: number,
@@ -60,20 +88,20 @@ export class PostResolver {
         const posts = await getConnection().query(
             `
             SELECT p.*,
-            json_build_object(
+            json_build_object (
                 'id', u.id,
                 'username', u.username,
                 'email', u.email,
-                'createdAt', u.createdAt,
-                'updatedAt', u.updatedAt,
+                'createdAt', u."createdAt",
+                'updatedAt', u."updatedAt"
             ) creator
-            FROM post p
+            FROM post p           
+            INNER JOIN public.user u ON p."creatorId" = u.id
             ${cursor ? `WHERE p."createdAt" < $2` : ""}
-            INNER JOIN public.user u WHERE p."creatorId" = u.id
             ORDER BY p."createdAt" DESC
             limit $1
             `,
-            [replacements]
+            [...replacements]
         );
 
         // const qb = getConnection()
