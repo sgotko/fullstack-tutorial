@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Link } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Link } from "@chakra-ui/react";
 import NextLink from "next/link";
 import React from "react";
 import { useLogoutMutation, useMeQuery } from "../generated/graphql";
@@ -42,7 +42,12 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
       </Flex>
     );
   return (
-    <Flex position="sticky" zIndex={1} top={0} bg="tan" p={4}>
+    <Flex position="sticky" zIndex={1} top={0} bg="tan" p={4} align="center">
+      <NextLink href="/">
+        <Link>
+          <Heading size="sm">fullstack-tutorial</Heading>
+        </Link>
+      </NextLink>
       <Box ml={"auto"}>{body}</Box>
     </Flex>
   );
