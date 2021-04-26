@@ -35,6 +35,9 @@ const main = async () => {
     const RedisStore = connectRedis(session);
     const redis = new Redis();
 
+    // if server is behind the proxy
+    // app.set("trust proxy", 1);
+
     app.use(
         cors({
             origin: "http://localhost:3000",
