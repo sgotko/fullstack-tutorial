@@ -118,13 +118,18 @@ export class PostResolver {
         const posts = await getConnection().query(
             `
             SELECT p.*
-            FROM post p           
-            ${cursor ? `WHERE p."createdAt" < TO_TIMESTAMP(${cursor})` : ""}
+            FROM post p
+            ${
+                cursor
+                    ? `WHERE p."createdAt" < '${new Date(
+                          parseInt(cursor)
+                      ).toISOString()}'`
+                    : ""
+            }
             ORDER BY p."createdAt" DESC
             limit ${realLimitPlusOne}
             `
         );
-
         return {
             posts: posts.slice(0, realLimit),
             hasMore: posts.length === realLimitPlusOne,
