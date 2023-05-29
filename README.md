@@ -5,4 +5,3 @@
 4. GraphQL
 5. Typescript
 6. Chakra UI
-7. 
